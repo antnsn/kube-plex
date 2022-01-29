@@ -23,7 +23,8 @@ spec:
             backend:
               service:
                 name: {{ $serviceName }}
-                port: pms
+                port: 
+                  name: pms
     {{- end -}}
   {{- if .Values.ingress.tls }}
   tls:
