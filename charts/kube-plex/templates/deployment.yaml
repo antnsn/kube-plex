@@ -109,31 +109,10 @@ spec:
           value: "{{ template "fullname" . }}-transcode"
 {{- end }}
         - name: DATA_PVC
-{{- if .Values.persistence.data.claimName }}
-          value: "{{ .Values.persistence.data.claimName }}"
-{{- else }}
-          value: "{{ template "fullname" . }}-data"
-{{- end }}
+          value: "{{ .Values.persistence.data.name }}-data"       
         - name: CONFIG_PVC
-{{- if .Values.persistence.config.claimName }}
-          value: "{{ .Values.persistence.config.claimName }}"
-{{- else }}
-          value: "{{ template "fullname" . }}-config"
-{{- end }}
-{{- if .Values.proxy.enable }}
-  {{- if .Values.proxy.http }}
-        - name: "HTTP_PROXY"
-          value: "{{.Values.proxy.http}}"
-  {{- end }}
-  {{- if .Values.proxy.https }}
-        - name: "HTTPS_PROXY"
-          value: "{{.Values.proxy.https}}"
-  {{- end }}
-  {{- if .Values.proxy.noproxy }}
-        - name: "NO_PROXY"
-          value: "{{.Values.proxy.noproxy}}"
-  {{- end }}
-{{- end }}
+          value: "{{ .Values.persistence.config.name }}-config"
+
         volumeMounts:
         - name: data
           mountPath: /data
@@ -164,38 +143,22 @@ spec:
     {{- end }}
       volumes:
       - name: data
-        persistentVolumeClaim:
-{{- if .Values.persistence.data.claimName }}
-          claimName: "{{ .Values.persistence.data.claimName }}"
-{{- else }}
-          claimName: "{{ template "fullname" . }}-data"
-{{- end }}
+        nfs:
+          server: {{ .Values.persistence.data.server }} 
+          path: {{ .Values.persistence.data.path }}  
+          
       - name: config
-        persistentVolumeClaim:
-{{- if .Values.persistence.config.claimName }}
-          claimName: "{{ .Values.persistence.config.claimName }}"
-{{- else }}
-          claimName: "{{ template "fullname" . }}-config"
-{{- end }}
+        nfs:
+          server: {{ .Values.persistence.config.server }} 
+          path: {{ .Values.persistence.config.path }}  
+
       - name: transcode
-{{- if .Values.persistence.transcode.enabled }}
-        persistentVolumeClaim:
-{{- if .Values.persistence.transcode.claimName }}
-          claimName: "{{ .Values.persistence.transcode.claimName }}"
-{{- else }}
-          claimName: "{{ template "fullname" . }}-transcode"
-{{- end }}
+        nfs:
+          server: {{ .Values.persistence.transcode.server }} 
+          path: {{ .Values.persistence.transcode.path }}  
+
 {{- else }}
         emptyDir: {}
-{{- end }}
-{{-  range .Values.persistence.extraData }}
-      - name: "extradata-{{ .name }}"
-        persistentVolumeClaim:
-{{- if .claimName }}
-          claimName: "{{ .claimName }}"
-{{- else }}
-          claimName: "extradata-{{ .name }}"
-{{- end }}
 {{- end }}
       - name: shared
         emptyDir: {}
@@ -207,3 +170,18 @@ spec:
       tolerations:
 {{ toYaml . | indent 8 }}
     {{- end }}
+
+{{- if .Values.proxy.enable }}
+  {{- if .Values.proxy.http }}
+        - name: "HTTP_PROXY"
+          value: "{{.Values.proxy.http}}"
+  {{- end }}
+  {{- if .Values.proxy.https }}
+        - name: "HTTPS_PROXY"
+          value: "{{.Values.proxy.https}}"
+  {{- end }}
+  {{- if .Values.proxy.noproxy }}
+        - name: "NO_PROXY"
+          value: "{{.Values.proxy.noproxy}}"
+  {{- end }}
+{{- end }}
